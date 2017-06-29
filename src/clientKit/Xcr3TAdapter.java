@@ -72,7 +72,7 @@ public class Xcr3TAdapter {
     public void register(String uid, String psw1, String psw2) {
         if (!psw1.equals(psw2))
             throw new IllegalStateException("password must be the same.");
-        Xcr3TClient client = new Xcr3TClient(uid, psw2,mChatter);
+        Xcr3TClient client = new Xcr3TClient(uid, psw2, mChatter);
         try {
             if (client.register())
                 addIdentity(client);
@@ -103,8 +103,6 @@ public class Xcr3TAdapter {
     }
 
     public void disconnect(String link) {
-        if (!link.matches("[\\s\\S]->[\\s\\S]"))
-            throw new IllegalStateException("Invalid link");
         String identity = link.split("->")[0].trim();
         String contact = link.split("->")[1].trim();
 
@@ -137,7 +135,8 @@ public class Xcr3TAdapter {
 
             if (line.hasOption("h")) {
                 StringWriter sw = new StringWriter();
-                mHelpFormatter.printHelp(new PrintWriter(sw), 100, "[command] [message]", "", mCliOptions, 0, 0, "");
+                mHelpFormatter.printHelp(new PrintWriter(sw), 100, "[command] [message]",
+                        "", mCliOptions, 0, 0, "");
                 mChatter.printLog(sw.toString());
             }
             if (line.hasOption("l")) {
@@ -199,7 +198,8 @@ public class Xcr3TAdapter {
 
         } catch (ParseException e) {
             StringWriter sw = new StringWriter();
-            mHelpFormatter.printHelp(new PrintWriter(sw), 100, "[command] [message]", "", mCliOptions, 0, 0, "");
+            mHelpFormatter.printHelp(new PrintWriter(sw), 100, "[command] [message]",
+                    "", mCliOptions, 0, 0, "");
             mChatter.printLog(sw.toString());
         } catch (IllegalStateException e) {
             mChatter.printLog(e.getMessage());
@@ -260,7 +260,7 @@ public class Xcr3TAdapter {
     }
 
     private void addIdentity(String uid, String psw) {
-        Xcr3TClient client = new Xcr3TClient(uid, psw,mChatter);
+        Xcr3TClient client = new Xcr3TClient(uid, psw, mChatter);
         addIdentity(client);
     }
 

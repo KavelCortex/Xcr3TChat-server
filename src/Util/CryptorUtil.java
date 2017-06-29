@@ -54,21 +54,6 @@ public class CryptorUtil {
         return (new BASE64Decoder()).decodeBuffer(data);
     }
 
-    /*public static byte[] encryptData(String BASE64PubKey, byte[] data) {
-
-        try {
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decryptBASE64(BASE64PubKey));
-            RSAPublicKey publicKey = (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(keySpec);
-            Cipher cipher = Cipher.getInstance("RSA");
-            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            return cipher.doFinal(data);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new IllegalStateException("Encrypt Failed");
-        }
-    }*/
-
     public static String pack(String BASE64PubKey, String rawData) throws IOException {
         byte[] encryptedData = cryptData(BASE64PubKey, rawData.getBytes(), Cipher.ENCRYPT_MODE);
         return encryptBASE64(encryptedData);
@@ -80,17 +65,6 @@ public class CryptorUtil {
         return new String(decryptedData, "UTF-8");
     }
 
-
-    /*public static byte[] cryptData(Key key, byte[] data, int cryptMode) {
-        try {
-            Cipher cipher = Cipher.getInstance("RSA");
-            cipher.init(cryptMode, key);
-            return cipher.doFinal(data);
-
-        } catch (Exception e) {
-            throw new IllegalStateException("Crypt Failed");
-        }
-    }*/
 
     public static byte[] cryptData(String BASE64Key, byte[] data, int cryptMode) {
         try {

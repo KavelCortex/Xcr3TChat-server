@@ -12,10 +12,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by wjw_w on 2017/6/22.
@@ -23,34 +19,65 @@ import java.util.Map;
 public class Xcr3TClient {
 
     public static final String CLIENT_NAME = "Kavel's Xcr3Tchat Client/0.1";
-
-    private String mUID;
-    private String mPassword;
-    private ServerSocket mServerSocket;
-    private Chattable mChatter;
-    private ChatHandler mChatHandler;
-
-    private int mPort;
-    protected static KeyPairGenerator mKeyPairGenerator;
-    private String mPrivateKey; //己方PrK
-    private String mToken = "";
     public final static String SERVERNAME = "localhost";
     public final static int SERVERPORT = 54213;
     private final static String SERVER_PUBLIC_KEY =
             "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCUC8HZmsk2fdHBYTaucuqkSN2EeeKUmcnqrPMg\n" +
                     "9RXxr3QaY8xwseP625eMS70rfgaz/0LmAHenm6rvKkWlGE1M3dr6RwOTXlNAbEW0c1fpfMqY9dd6\n" +
                     "PNw5jn7JxjIrVakscO+eDTRsRq1OX9LHW+qkswjt2RkSIo9ffvTL96n3SQIDAQAB";
+    protected static KeyPairGenerator mKeyPairGenerator;
+    private String mUID;
+    private String mPassword;
+    private ServerSocket mServerSocket;
+    private Chattable mChatter;
+    private ChatHandler mChatHandler;
+    private int mPort;
+    private String mPrivateKey; //己方PrK
+    private String mToken = "";
 
-    public Xcr3TClient(String uid, String psw,Chattable chatter) {
+    public Xcr3TClient(String uid, String psw, Chattable chatter) {
         mUID = uid;
         mPassword = psw;
-        mChatter=chatter;
+        mChatter = chatter;
         try {
             mKeyPairGenerator = KeyPairGenerator.getInstance("RSA");
             mKeyPairGenerator.initialize(1024, new SecureRandom());
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+    }
+
+    protected static void send(Socket socket, Object request) throws IOException {
+
+        System.out.println(request.toString());
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        bufferedWriter.write(request.toString());
+        bufferedWriter.flush();
+    }
+
+    protected static ResponseParser parse(Socket socket, String BASE64PriKey) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        String line;
+        StringBuilder header = new StringBuilder();
+
+        while ((line = bufferedReader.readLine()) != null) {
+            header.append(line);
+            header.append("\r\n");
+            if (line.isEmpty())
+                break;
+        }
+        StringBuilder msg = new StringBuilder();
+        while ((line = bufferedReader.readLine()) != null) {
+            msg.append(line);
+            msg.append("\r\n");
+            if (line.isEmpty())
+                break;
+        }
+
+        ResponseParser parser = new ResponseParser(header.toString(), msg.toString(), BASE64PriKey);
+
+        System.out.println(parser.getJSON().toString());
+        return parser;
     }
 
     public void setChatter(Chattable chatter) {
@@ -65,13 +92,11 @@ public class Xcr3TClient {
         return mChatHandler;
     }
 
-
     private String generatePublicKey() throws IOException {
         KeyPair keyPair = mKeyPairGenerator.generateKeyPair();
         mPrivateKey = CryptorUtil.encryptBASE64(keyPair.getPrivate().getEncoded()); //每次生成新KeyPair后将覆盖旧PrK
         return CryptorUtil.encryptBASE64(keyPair.getPublic().getEncoded());   //己方PuK本地不保存，使用一次后交由GC处理
     }
-
 
     /**
      * 添加当前用户
@@ -125,7 +150,7 @@ public class Xcr3TClient {
 
         if (parser.isStatusOK()) {
             mToken = parser.getJSON().getString("token");
-            new Thread(new ChatListener(mServerSocket, mChatter,getUsername())).start();
+            new Thread(new ChatListener(mServerSocket, mChatter, getUsername())).start();
             mChatter.printLog("You have logged in as: " + getUsername());
             return true;
         } else {
@@ -161,12 +186,11 @@ public class Xcr3TClient {
             String host = parser.getJSON().getString("ip");
             int port = Integer.parseInt(parser.getJSON().getString("port"));
             Socket s = new Socket(host, port);
-            new ChatHandler(s, mChatter,getUsername());
+            new ChatHandler(s, mChatter, getUsername());
             return true;
         } else
             return false;
     }
-
 
     public void logout() throws IOException {
         Request request = new Request.Builder(Xcr3TProtocol.REQUEST_GOODBYE)
@@ -199,40 +223,6 @@ public class Xcr3TClient {
         ResponseParser parser = parse(socket, mPrivateKey);
         mPrivateKey = null; //使用一次后清除该私钥
         socket.close();
-        return parser;
-    }
-
-
-    protected static void send(Socket socket, Object request) throws IOException {
-
-        System.out.println(request.toString());
-        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        bufferedWriter.write(request.toString());
-        bufferedWriter.flush();
-    }
-
-    protected static ResponseParser parse(Socket socket, String BASE64PriKey) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        String line;
-        StringBuilder header = new StringBuilder();
-
-        while ((line = bufferedReader.readLine()) != null) {
-            header.append(line);
-            header.append("\r\n");
-            if (line.isEmpty())
-                break;
-        }
-        StringBuilder msg = new StringBuilder();
-        while ((line = bufferedReader.readLine()) != null) {
-            msg.append(line);
-            msg.append("\r\n");
-            if (line.isEmpty())
-                break;
-        }
-
-        ResponseParser parser = new ResponseParser(header.toString(), msg.toString(), BASE64PriKey);
-
-        System.out.println(parser.getJSON().toString());
         return parser;
     }
 }

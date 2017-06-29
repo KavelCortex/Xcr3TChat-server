@@ -28,8 +28,8 @@ public class ChatHandler {
     private String mOppositeUsername;
     private Object keyListLock = new Object();
 
-    public ChatHandler(Socket s, Chattable chatter,String selfUsername) throws IOException {
-        mSelfUsername =selfUsername;
+    public ChatHandler(Socket s, Chattable chatter, String selfUsername) throws IOException {
+        mSelfUsername = selfUsername;
         mSocket = s;
         mChatter = chatter;
         mPrivateKeyChain = new HashMap<>();
@@ -40,7 +40,7 @@ public class ChatHandler {
 
     }
 
-    public String getSelfUsername(){
+    public String getSelfUsername() {
         return mSelfUsername;
     }
 
@@ -48,8 +48,8 @@ public class ChatHandler {
         return mOppositeUsername;
     }
 
-    public String getLink(){
-        return mSelfUsername+" -> "+mOppositeUsername;
+    public String getLink() {
+        return mSelfUsername + " -> " + mOppositeUsername;
     }
 
     public void sendHandshakeMsg() throws IOException {
@@ -94,7 +94,7 @@ public class ChatHandler {
         Xcr3TClient.send(mSocket, request);
     }
 
-    public void disconnect()throws IOException{
+    public void disconnect() throws IOException {
         Request request = new Request.Builder(Xcr3TProtocol.REQUEST_GOODBYE)
                 .build();
         Xcr3TClient.send(mSocket, request);
@@ -136,7 +136,7 @@ public class ChatHandler {
                         String decryptKey = mPrivateKeyChain.remove(decryptID);
                         String chatText = CryptorUtil.unpack(decryptKey, chatJSON.getString("chat"));
                         //TODO: 输出内容
-                        mChatter.showChat(getSelfUsername()+" <- "+getOppositeUsername()+": "+chatText);
+                        mChatter.showChat(getSelfUsername() + " <- " + getOppositeUsername() + ": " + chatText);
                     }
 
                     if (parser.isProtocolHeader(Xcr3TProtocol.RESPONSE_200_OK) && chatJSON.has("publicKey")) {
@@ -154,24 +154,24 @@ public class ChatHandler {
                         mChatter.incoming(ChatHandler.this);
                     }
 
-                    if(parser.isProtocolHeader(Xcr3TProtocol.REQUEST_GOODBYE)){
+                    if (parser.isProtocolHeader(Xcr3TProtocol.REQUEST_GOODBYE)) {
                         Response keyResponse = new Response.Builder(Xcr3TProtocol.RESPONSE_200_OK)
                                 .setResponseName(Xcr3TClient.CLIENT_NAME)
-                                .put("goodbye","true")
+                                .put("goodbye", "true")
                                 .build();
                         Xcr3TClient.send(mSocket, keyResponse);
                         mChatter.disconnecting(ChatHandler.this);
                         mSocket.close();
                     }
                     if (parser.isProtocolHeader(Xcr3TProtocol.RESPONSE_200_OK) && chatJSON.has("goodbye")) {
-                        if(chatJSON.getString("goodbye").equals("true"))
+                        if (chatJSON.getString("goodbye").equals("true"))
                             mChatter.disconnecting(ChatHandler.this);
-                            mSocket.close();
+                        mSocket.close();
 
                     }
                 }
             } catch (IOException e) {
-                mChatter.printLog("Connection Closed: "+getLink());
+                mChatter.printLog("Connection Closed: " + getLink());
                 mChatter.disconnecting(ChatHandler.this);
             }
         }
