@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="org.mariadb.jdbc:mariadb-java-client:1.3.0-beta-1" type="repository">
+    <properties maven-id="org.mariadb.jdbc:mariadb-java-client:1.3.0-beta-1" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/mariadb-java-client-1.3.0-beta-1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jna-3.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jna-3.3.0-platform.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
